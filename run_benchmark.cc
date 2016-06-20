@@ -16,7 +16,7 @@
 #pragma warning (disable : 4127, 4244)
 #endif
 
-#include "vectorclass\vectorclass.h"
+#include "vectorclass.h"
 
 #if defined(_MSC_VER)
 #pragma warning (4 : 4127, 4244)

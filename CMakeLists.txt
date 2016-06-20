@@ -23,7 +23,7 @@ file (GLOB AgnerFog "vectorclass/*.h" "vectorclass/*.cpp")
 source_group("" FILES MATRIX_SOURCES)
 source_group("" FILES AgnerFog)
 
-include_directories(..)
+include_directories(.. ../vectorclass)
 
 add_executable(matrix run_benchmark.cc)
 
