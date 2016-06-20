@@ -96,7 +96,7 @@ void omp_matrix_multiply(const Matrix<NumberType>& left, const Matrix<NumberType
 	const long numRows = left.getRows();
 	const long numCols = left.getCols();
 	for (long i = 0; i < numRows; ++i) {
-#pragma omp parallel for default(none)
+#pragma omp parallel for default(none), private(i), shared(left, right, out)
 		for (long j = 0; j < numCols; ++j) {
 			double result = 0;
 			for (long k = 0; k < numRows; ++k) {
