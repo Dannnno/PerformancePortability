@@ -63,7 +63,7 @@ struct AlignedAllocator {
     }
 
     pointer allocate(const std::size_t n) const {
-        if (n == 0) {
+        if (!n) {
             return nullptr;
         }
 
@@ -71,13 +71,13 @@ struct AlignedAllocator {
             throw std::length_error("AlignedAllocator<T>::allocate() - Integer overflow.");
         }
 
-        void* const pv = _mm_malloc(n * sizeof(value_type), Alignment);
+        void* const p = _mm_malloc(n * sizeof(value_type), Alignment);
 
-        if (!pv) {
+        if (!p) {
             throw std::bad_alloc();
         }
 
-        return static_cast<pointer>(pv);
+        return static_cast<pointer>(p);
     }
 
     void deallocate(pointer const p, const std::size_t) const {
