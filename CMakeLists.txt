@@ -20,12 +20,12 @@ endif()
 
 file (GLOB MATRIX_SOURCES "*.h" "*.cc")
 file (GLOB AgnerFog "vectorclass/*.h" "vectorclass/*.cpp")
-source_group("" FILES MATRIX_SOURCES)
-source_group("" FILES AgnerFog)
+source_group("matrix" FILES MATRIX_SOURCES)
+source_group("vectorclass" FILES AgnerFog)
 
 include_directories(.. ../vectorclass)
 
-add_executable(matrix run_benchmark.cc)
+add_executable(matrix run_benchmark.cc ${MATRIX_SOURCES})
 
 set_property(TARGET matrix PROPERTY FOLDER "executables")
 

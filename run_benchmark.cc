@@ -5,7 +5,6 @@
 #include <functional>
 #include <string>
 #include <utility>
-#include <tuple>
 #include <chrono>
 #include <random>
 
@@ -16,7 +15,11 @@
 #pragma warning (disable : 4127, 4244)
 #endif
 
+#if defined(_MSC_VER)
+#include "vectorclass/vectorclass.h"
+#else
 #include "vectorclass.h"
+#endif
 
 #if defined(_MSC_VER)
 #pragma warning (4 : 4127, 4244)
@@ -30,8 +33,8 @@ using std::vector;
 using std::array;
 using std::function;
 using std::string;
-using std::tuple;
-using std::make_tuple;
+using std::pair;
+using std::make_pair;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::duration;
@@ -126,26 +129,26 @@ using MatrixMultiplyFunction = function<
 			const Matrix<NumberType>&,
 			Matrix<NumberType>*)>;
 
-vector<tuple<MatrixMultiplyFunction<double>, string, FILE*>> functions = {
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(simple_matrix_multiply<double>), "simple", nullptr),
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(improved_matrix_multiply<double>), "improved", nullptr),
+vector<pair<MatrixMultiplyFunction<double>, string>> functions = {
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(simple_matrix_multiply<double>), "simple"),
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(improved_matrix_multiply<double>), "improved"),
 #ifdef CUDA_ENABLED
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(cude_matrix_multiply<double>), "cuda", nullptr),
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(cude_matrix_multiply<double>), "cuda"),
 #endif
 #ifdef OPENCL_ENABLED
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(opencl_matrix_multiply<double>), "opencl", nullptr),
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(opencl_matrix_multiply<double>), "opencl"),
 #endif
 #ifdef OMP_ENABLED
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(omp_matrix_multiply<double>), "omp", nullptr),
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(omp_matrix_multiply<double>), "omp"),
 #endif
 #ifdef KOKKOS_OMP_ENABLED
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(kokkos_omp_matrix_multiply<double>), "kokkos_omp", nullptr),
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(kokkos_omp_matrix_multiply<double>), "kokkos_omp"),
 #endif
 #ifdef KOKKOS_CUDA_ENABLED
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(kokkos_cuda_matrix_multiply<double>), "kokkos_cuda", nullptr),
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(kokkos_cuda_matrix_multiply<double>), "kokkos_cuda"),
 #endif
 #ifdef KOKKOS_OPENCL_ENABLED
-	make_tuple(static_cast<MatrixMultiplyFunction<double>>(kokkos_opencl_matrix_multiply<double>), "kokkos_opencl", nullptr),
+	make_pair(static_cast<MatrixMultiplyFunction<double>>(kokkos_opencl_matrix_multiply<double>), "kokkos_opencl"),
 #endif
 };
 
@@ -168,7 +171,7 @@ void check_result(const Matrix<NumberType>& expected, const Matrix<NumberType>& 
 
 template <typename MatrixType, typename FunctionType>
 double timing_test(
-		tuple<FunctionType, string, FILE*> functions,
+		pair<FunctionType, string> functions,
 		size_t num_attempts, 
 		const MatrixType& left, 
 		const MatrixType& right, 
@@ -197,15 +200,19 @@ int main() {
 	default_random_engine engine;
 
 	char sprintf_buffer[50];
-	for (auto& item : functions) {
-		sprintf(sprintf_buffer, "%s_results.csv", std::get<1>(item).c_str());
-		std::get<2>(item) = fopen(sprintf_buffer, "w");
+
+	FILE* file = fopen("results.csv", "w");
+	fprintf(file, "Size,");
+	for (const auto& function : functions) {
+		fprintf(file, ",%s", function.second.c_str());
 	}
+	fprintf(file, "\n");
 
 	const size_t difference = (MAX_SIZE - MIN_SIZE) / NUM_SIZES;
 
 	for (size_t size = MIN_SIZE; size < MAX_SIZE; size += difference) {
 		fprintf(stderr, "Starting size %zu...\n", size);
+		fprintf(file, ",%zu", size);
 		uniform_real_distribution<double> gen(0, 10);
 
 		Matrix<double> left(size, size, 0.);
@@ -230,16 +237,15 @@ int main() {
 			auto innertoc = high_resolution_clock::now();
 			const double time = duration_cast<duration<double>>(innertoc - innertic).count();
 			fprintf(stderr, "Finished in %.3f seconds (best %.3f)\n", time, best_time);
-			fprintf(std::get<2>(items), ",%.3f", best_time);
+			fprintf(file, ",%.3f", best_time);
 		}
 
 		auto toc = high_resolution_clock::now();
 
 		const double time = duration_cast<duration<double>>(toc - tic).count();
 		fprintf(stderr, "Finished size %zu in %.3f seconds\n", size, time);
+		fprintf(file, "\n");
 	}
 
-	for (const auto& item : functions) {
-		fclose(std::get<2>(item));
-	}
+	fclose(file);
 }
