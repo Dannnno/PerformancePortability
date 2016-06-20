@@ -4,18 +4,18 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set (CMAKE_CXX_FLAGS "-Wall")
 
+ADD_DEFINITIONS(-DOMP_ENABLED)
+
 if (${MSVC})
-    ADD_DEFINITIONS(/arch:SSE)
     ADD_DEFINITIONS(/arch:SSE2)
-    ADD_DEFINITIONS(/arch:AVX)
-    ADD_DEFINITIONS(/arch:AVX2)
     ADD_DEFINITIONS(/W4)
     ADD_DEFINITIONS(/openmp)
 elseif(${CMAKE_COMPILER_IS_GNUCXX})
+    ADD_DEFINITIONS(-msse2)
     ADD_DEFINITIONS(-Werror)
     ADD_DEFINITIONS(-Wextra)
     ADD_DEFINITIONS(-pedantic)
-    ADD_DEIFNITIONS(-std=c++11)
+    ADD_DEFINITIONS(-std=c++11)
 endif()
 
 file (GLOB MATRIX_SOURCES "*.h" "*.cc")
